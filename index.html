@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="ka">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NIGHTIN - Premium Cocktail Bar</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+
+  #chatbot-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 280px;
+    max-width: 90vw;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    z-index: 9999;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  #chatbot-container.minimized {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+ background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+    cursor: pointer;
+  }
+
+  #chatbot-toggle {
+    display: none;
+    width: 100%;
+    height: 100%;
+    border: none;
+    background: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #chatbot-container.minimized #chatbot-toggle {
+    display: flex;
+  }
+
+  #chatbot-container.minimized #chatbot-content {
+    display: none;
+  }
+
+  #chatbot-header {
+ background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+    color: white;
+    padding: 12px 16px;
+    font-weight: 600;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    background: #10b981;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .header-controls {
+    display: flex;
+    gap: 4px;
+  }
+
+  .header-btn {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background 0.2s;
+    font-size: 16px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .header-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  #chatbot-messages {
+    flex: 1;
+    padding: 16px;
+    overflow-y: auto;
+    background: linear-gradient(to bottom, #f8fafc, #ffffff);
+    min-height: 180px;
+    max-height: 180px;
+  }
+
+  .chatbot-message {
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 16px;
+    max-width: 85%;
+    font-size: 14px;
+    line-height: 1.4;
+    animation: slideIn 0.3s ease-out;
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  .bot-message {
+    background: white;
+    color: #374151;
+    align-self: flex-start;
+    border: 1px solid #e5e7eb;
+    border-bottom-left-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .user-message {
+     background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+    border-bottom-right-radius: 4px;
+  }
+
+  #chatbot-options {
+    padding: 12px 16px;
+    background: white;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  #chatbot-options button {
+    background: white;
+    color: #4b5563;
+    border: 1px solid #d1d5db;
+    border-radius: 20px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    flex: 1 1 auto;
+    min-width: 80px;
+  }
+
+  #chatbot-options button:hover {
+    background: linear-gradient(135deg, #c53030 0%, #e53e3e 100%);
+    color: white;
+    border-color: transparent;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+  }
+
+  #chatbot-restart {
+    background: none;
+    border: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 8px;
+    margin: 0 auto;
+    display: none;
+    align-items: center;
+    gap: 4px;
+    transition: color 0.2s;
+  }
+
+  #chatbot-restart:hover {
+    color: #374151;
+  }
+
+  #chatbot-restart.show {
+    display: flex;
+  }
+
+  #chatbot-messages::-webkit-scrollbar {
+    width: 4px;
+  }
+
+  #chatbot-messages::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  #chatbot-messages::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 2px;
+  }
+
+  @media (max-width: 480px) {
+    #chatbot-container {
+      width: calc(100vw - 32px);
+      right: 16px;
+      bottom: 16px;
+    }
+  }
+</style>
+
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar">
+      <div class="nav-container">
+        <div class="logo">
+          <img src="logo.png" alt="NIGHTIN Logo" class="logo-img" />
+        </div>
+        <ul class="nav-menu">
+          <li><a href="#home">მთავარი</a></li>
+          <li><a href="#experiment">ექსპერიმენტი</a></li>
+          <li><a href="#about">ჩვენ შესახებ</a></li>
+          <li><a href="#cocktails">კოქტეილები</a></li>
+          <li><a href="#events">ღონისძიებები</a></li>
+          <li><a href="#contact">კონტაქტი</a></li>
+        </ul>
+        <div class="hamburger">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+      <div class="hero-content">
+        <h1 class="hero-title">NIGHTIN</h1>
+        <p class="hero-subtitle">Premium Cocktail Experience</p>
+        <p class="hero-description">
+          ხარისხიანი კლასიკური და უნიკალური კოქტეილები<br />კომფორტულ და მისტიურ
+          ატმოსფეროში
+        </p>
+        <button class="cta-button" onclick="scrollToSection('contact')">
+          რეზერვაცია
+        </button>
+      </div>
+      <div class="hero-overlay"></div>
+    </section>
+
+    <!-- Featured Experiment Section -->
+    <section id="experiment" class="experiment-section">
+      <div class="container">
+        <div class="experiment-content">
+          <div class="experiment-text">
+            <h2 class="experiment-title">„ექსპერიმენტი"</h2>
+            <p class="experiment-subtitle">ლაბორატორიული კოქტეილი</p>
+            <p class="experiment-description">
+              შემოდი ლაბორატორიაში, სადაც სასმელი მხოლოდ არ ერევა — ის იქმნება
+              როგორც ჯადოსნური რიტუალი. ბარმენი კოქტეილს ამზადებს შენს თვალწინ
+              ქიმიური კოლბებით, მშრალი ყინულით და მისტიური ნისლით.
+            </p>
+            <div class="experiment-features">
+              <div class="exp-feature">
+                <span class="exp-icon">✅</span>
+                <span>ვიზუალური სანახაობა</span>
+              </div>
+              <div class="exp-feature">
+                <span class="exp-icon">✅</span>
+                <span>მაღალი Instagram ღირებულება</span>
+              </div>
+              <div class="exp-feature">
+                <span class="exp-icon">✅</span>
+                <span>ჩართულობა და ემოციური ეფექტი</span>
+              </div>
+            </div>
+            <p class="experiment-tagline">
+              „ექსპერიმენტი" არ არის უბრალოდ კოქტეილი — ეს არის ელექსირი სხვა
+              სამყაროდან.
+            </p>
+            <button class="experiment-btn" onclick="scrollToSection('contact')">
+              გამოსცადე ექსპერიმენტი
+            </button>
+          </div>
+          <div class="experiment-visual">
+            <div class="lab-container">
+              <div class="flask flask-1">
+                <div class="liquid liquid-red"></div>
+                <div class="bubbles"></div>
+              </div>
+              <div class="flask flask-2">
+                <div class="liquid liquid-blue"></div>
+                <div class="steam"></div>
+              </div>
+              <div class="flask flask-3">
+                <div class="liquid liquid-green"></div>
+                <div class="glow"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about">
+      <div class="container">
+        <div class="about-content">
+          <div class="about-text">
+            <h2>ჩვენ შესახებ</h2>
+            <p>
+              NIGHTIN არის ექსკლუზიური კოქტეილ ბარი, სადაც შეგიძლიათ ისიამოვნოთ
+              ხარისხიანი კლასიკური და უნიკალური კოქტეილებით ჩვენი 3 საფირმო
+              ჯინის ბაზაზე.
+            </p>
+            <div class="features">
+              <div class="feature">
+                <div class="feature-icon">🍸</div>
+                <h3>პრემიუმ კოქტეილები</h3>
+                <p>3 საფირმო ჯინის ბაზაზე დამზადებული უნიკალური კოქტეილები</p>
+              </div>
+              <div class="feature">
+                <div class="feature-icon">🎵</div>
+                <h3>მისტიური ატმოსფერო</h3>
+                <p>შავი და წითელი ფერებით შექმნილი კომფორტული გარემო</p>
+              </div>
+              <div class="feature">
+                <div class="feature-icon">🧀</div>
+                <h3>გემრიელი სნექები</h3>
+                <p>ყველის დაფები და სხვა დახვეწილი სნექები</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cocktails Section -->
+    <section id="cocktails" class="cocktails">
+      <div class="container">
+        <h2>ჩვენი კოქტეილები</h2>
+        <div class="cocktail-grid">
+          <div class="cocktail-card">
+            <div class="cocktail-image">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/513716327_1764503537752804_2800724453511875715_n.jpg-JHy7Lc6n8nVTIUVZZlGLl6KfyKlyGw.jpeg"
+                alt="Botanical Pink Cocktail"
+                class="cocktail-photo"
+              />
+            </div>
+            <h3>Botanical Mystery</h3>
+            <p>ბოტანიკური ნოტებით და ყვავილებით გაფორმებული პრემიუმ კოქტეილი</p>
+            <span class="price">28₾</span>
+          </div>
+          <div class="cocktail-card">
+            <div class="cocktail-image">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/494359289_720827720461544_5760362982841570803_n.jpg-pGmYISVqcUJsdMAetdE4PEei1u611a.jpeg"
+                alt="Kiss Cocktail"
+                class="cocktail-photo"
+              />
+            </div>
+            <h3>Kiss of Night</h3>
+            <p>მისტიური წითელი კოქტეილი არტისტული პრეზენტაციით</p>
+            <span class="price">32₾</span>
+          </div>
+          <div class="cocktail-card">
+            <div class="cocktail-image">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/507241652_1187751939794043_8842110021016048939_n.jpg-iPKeYdyUqNK2WL5q2NOYOorHIFbKkt.jpeg"
+                alt="Strawberry Elegance"
+                class="cocktail-photo"
+              />
+            </div>
+            <h3>Strawberry Elegance</h3>
+            <p>ელეგანტური ვარდისფერი კოქტეილი ნაყინის ნოტებით</p>
+            <span class="price">26₾</span>
+          </div>
+          <div class="cocktail-card">
+            <div class="cocktail-image">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/494833084_1233959471710951_3904333637010087165_n.jpg-KCyW5PTTOx9txJd6oXeVx2qKAnWxiC.jpeg"
+                alt="Lavender Dreams"
+                class="cocktail-photo"
+              />
+            </div>
+            <h3>Lavender Dreams</h3>
+            <p>ლავანდისა და ლიმონის არომატით გაჯერებული კოქტეილი</p>
+            <span class="price">30₾</span>
+          </div>
+          <div class="cocktail-card">
+            <div class="cocktail-image">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/512674037_1404039397323763_2383237839771728868_n.jpg-ssR9RSj1zFMwR7zvrM4raTxnaXuQsO.jpeg"
+                alt="Tropical Sunset"
+                class="cocktail-photo"
+              />
+            </div>
+            <h3>Tropical Sunset</h3>
+            <p>ტროპიკული ნაყოფებით და ანანასის გარნირით</p>
+            <span class="price">24₾</span>
+          </div>
+          <div class="cocktail-card">
+            <div class="cocktail-image">
+              <img
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/510361289_991080483104214_1068838887873057687_n.jpg-cLKC2DJyA2PeDxi6wSYfM1gwUAnErM.jpeg"
+                alt="Violet Mystique"
+                class="cocktail-photo"
+              />
+            </div>
+            <h3>Violet Mystique</h3>
+            <p>
+              იასამნისფერი კოქტეილი ლურჯი ყვავილებით და ოქროსფერი აქცენტებით
+            </p>
+            <span class="price">35₾</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Events Section -->
+    <section id="events" class="events">
+      <div class="container">
+        <h2>ღონისძიებები</h2>
+        <div class="events-content">
+          <div class="event-types">
+            <div class="event-type">
+              <h3>After Work Gatherings</h3>
+              <p>სამუშაოს შემდეგ მეგობრებთან შეხვედრა</p>
+            </div>
+            <div class="event-type">
+              <h3>თარიღები</h3>
+              <p>რომანტიული საღამოები ინტიმურ ატმოსფეროში</p>
+            </div>
+            <div class="event-type">
+              <h3>კერძო ღონისძიებები</h3>
+              <p>სივრცის გაქირავება სპეციალური ღონისძიებებისთვის</p>
+            </div>
+            <div class="event-type">
+              <h3>ბრენდირებული საღამოები</h3>
+              <p>სპონსორული და თემატური ღონისძიებები</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="contact">
+      <div class="container">
+        <h2>კონტაქტი და რეზერვაცია</h2>
+        <div class="contact-content">
+          <div class="contact-info">
+            <div class="contact-item">
+              <h3>მისამართი</h3>
+              <p>თბილისი, საქართველო</p>
+            </div>
+            <div class="contact-item">
+              <h3>სამუშაო საათები</h3>
+              <p>ორშაბათი - კვირა: 18:00 - 02:00</p>
+            </div>
+            <div class="contact-item">
+              <h3>ტელეფონი</h3>
+              <p>+995 XXX XXX XXX</p>
+            </div>
+            <div class="contact-item">
+              <h3>სოციალური ქსელები</h3>
+              <div class="social-links">
+                <a href="#" class="social-link">Instagram</a>
+                <a href="#" class="social-link">Facebook</a>
+              </div>
+            </div>
+          </div>
+          <div class="reservation-form">
+            <h3>ონლაინ რეზერვაცია</h3>
+            <form id="reservationForm">
+              <input type="text" placeholder="სახელი" required />
+              <input type="tel" placeholder="ტელეფონი" required />
+              <input type="date" required />
+              <input type="time" required />
+              <input
+                type="number"
+                placeholder="სტუმრების რაოდენობა"
+                min="1"
+                required
+              />
+              <textarea placeholder="დამატებითი ინფორმაცია"></textarea>
+              <button type="submit" class="submit-btn">რეზერვაცია</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+<div id="chatbot-container" aria-label="NIGHTIN ჩეთბოტი" role="region">
+  <button id="chatbot-toggle">💬</button>
+  <div id="chatbot-content">
+    <div id="chatbot-header">
+      <div class="header-left">
+        <div class="status-dot"></div>
+        <span>NIGHTIN ჩეთბოტი</span>
+      </div>
+      <div class="header-controls">
+        <button class="header-btn" id="restart-btn" title="დაწყება თავიდან">↻</button>
+        <button class="header-btn" id="minimize-btn" title="ჩაკეცვა">−</button>
+      </div>
+    </div>
+    <div id="chatbot-messages" aria-live="polite" aria-atomic="true"></div>
+    <div id="chatbot-options"></div>
+    <button id="chatbot-restart">↻ დაწყება თავიდან</button>
+  </div>
+</div>
+
+<script>
+  (function() {
+    const chatNodes = {
+      1: {
+        message: "გამარჯობა! რით შეგვიძლია დაგეხმაროთ NIGHTIN-ში?",
+        options: [
+          { text: "მენიუს შესახებ", nextId: 2 },
+          { text: "ჯგუფური ღონისძიებები", nextId: 3 },
+          { text: "სამუშაო საათები", nextId: 4 },
+        ],
+      },
+      2: {
+        message: "ჩვენ გვყავს კლასიკური და უნიკალური ავტორული კოქტეილები. გინდა კიდევ რაიმე გაიგო?",
+        options: [
+          { text: "ალკოჰოლური ბრენდები", nextId: 5 },
+          { text: "არაალკოჰოლური სასმელები", nextId: 6 },
+          { text: "უკან მთავარ მენიუში", nextId: 1 },
+        ],
+      },
+      3: {
+        message: "დიახ, გვაქვს ჯგუფური ღონისძიებების შესაძლებლობა მცირე და დიდი ჯგუფებისთვის. გსურთ რეზერვაცია?",
+        options: [
+          { text: "დიახ, როგორ გავაკეთო?", nextId: 7 },
+          { text: "არა, დაბრუნება მთავარ მენიუში", nextId: 1 },
+        ],
+      },
+      4: {
+        message: "NIGHTIN მუშაობს ორშაბათიდან შაბათამდე 18:00-დან 02:00 საათამდე.",
+        options: [
+          { text: "ჯგუფური ღონისძიებები", nextId: 3 },
+          { text: "უკან მთავარ მენიუში", nextId: 1 },
+        ],
+      },
+      5: {
+        message: "გამოვიყენებთ Tanqueray, Hendrick's, Belvedere და სხვა პრემიუმ ბრენდებს.",
+        options: [{ text: "მთავარ მენიუში დაბრუნება", nextId: 1 }],
+      },
+      6: {
+        message: "კი, გვაქვს უნიკალური non-alcoholic კოქტეილები, რომლებიც მდიდარია არომატებით.",
+        options: [{ text: "მთავარ მენიუში დაბრუნება", nextId: 1 }],
+      },
+      7: {
+        message: "რეზერვაცია შეგიძლიათ, დაგვიკავშირდით 555-123-456.",
+        options: [{ text: "მადლობა!", nextId: 1 }],
+      },
+    };
+
+    const container = document.getElementById("chatbot-container");
+    const messagesEl = document.getElementById("chatbot-messages");
+    const optionsEl = document.getElementById("chatbot-options");
+    const restartBtn = document.getElementById("chatbot-restart");
+    const toggleBtn = document.getElementById("chatbot-toggle");
+    const minimizeBtn = document.getElementById("minimize-btn");
+    const headerRestartBtn = document.getElementById("restart-btn");
+
+    let currentNodeId = 1;
+    let isMinimized = false;
+
+    function addMessage(text, fromUser = false) {
+      const msgDiv = document.createElement("div");
+      msgDiv.className = "chatbot-message " + (fromUser ? "user-message" : "bot-message");
+      msgDiv.textContent = text;
+      messagesEl.appendChild(msgDiv);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function renderNode(nodeId) {
+      currentNodeId = nodeId;
+      const node = chatNodes[nodeId];
+      optionsEl.innerHTML = "";
+
+      setTimeout(() => {
+        addMessage(node.message, false);
+        node.options.forEach((opt) => {
+          const btn = document.createElement("button");
+          btn.textContent = opt.text;
+          btn.onclick = () => {
+            addMessage(opt.text, true);
+            setTimeout(() => renderNode(opt.nextId), 300);
+          };
+          optionsEl.appendChild(btn);
+        });
+        restartBtn.className = nodeId === 1 ? "" : "show";
+      }, 100);
+    }
+
+    function restart() {
+      messagesEl.innerHTML = "";
+      renderNode(1);
+    }
+
+    function toggleMinimize() {
+      isMinimized = !isMinimized;
+      container.classList.toggle("minimized", isMinimized);
+    }
+
+    restartBtn.onclick = restart;
+    headerRestartBtn.onclick = restart;
+    toggleBtn.onclick = toggleMinimize;
+    minimizeBtn.onclick = toggleMinimize;
+
+    renderNode(1);
+  })();
+</script>
+    <!-- Footer -->
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-content">
+          <div class="footer-logo">
+            <img src="logo.png" alt="NIGHTIN Logo" class="logo-img" />
+          </div>
+          <p>&copy; 2024 NIGHTIN. ყველა უფლება დაცულია.</p>
+        </div>
+      </div>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
